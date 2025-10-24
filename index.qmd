@@ -75,6 +75,9 @@ df2021 = pd.read_csv("baseball21.csv")
 
 print("2010 data shape:", df2010.shape)
 print("2021 data shape:", df2021.shape)
+print("\nNumber of games in 2010 dataset:", len(df2010))
+print("Number of games in 2021 dataset:", len(df2021))
+print("Total games across both seasons:", len(df2010) + len(df2021))
 print("\n2010 data columns:", df2010.columns.tolist())
 print("\nFirst few rows of 2010 data:")
 print(df2010.head())
@@ -110,7 +113,8 @@ Our purpose is to investigate whether Coors Field in Denver, Colorado is truly t
 **Question 1: Hypothesis Formation**
 - Why might high altitude affect baseball performance?  Is Coors Field affected by high altitude?
 :::
-
+ data visualization project is perfectly positioned to investigate whether these altitude effects have changed over time by comparing the 2010 and 2021 seasons, which will show if the mitigation measures have successfully moderated the altitude's impact on scoring.
+Yes, Coors Field is absolutely affected by high altitude, and this is one of the most well-documented examples in professional sports of how elevation impacts game performance.
 ## Stage 2: Curation of Content
 
 **Mental Model:** Gather and create all the data you need to support your message.
@@ -154,7 +158,15 @@ print(avgDF_2021.head())
 **Question 1: Data Aggregation Strategy**
 - How many games are in the dataset? Why do we aggregate individual games into stadium averages before we start the visualization process?
 :::
-
+```{python}
+print("Number of games in 2010 dataset:", len(df2010))
+print("Number of games in 2021 dataset:", len(df2021))
+print("Total games across both seasons:", len(df2010) + len(df2021))
+```
+Ans : Number of games in 2010 dataset: 2430
+Number of games in 2021 dataset: 2429
+Total games across both seasons: 4859
+Ans: The aggregation transforms noisy individual game data into clean, comparable stadium-level metrics that can effectively answer the business question about which ballparks are most run-friendly due to altitude effects.
 ## Stage 3: Structuring of Visual Mappings
 
 **Mental Model:** Choose the right geometry and aesthetics to effectively communicate your message.
@@ -178,19 +190,25 @@ fig, axes = plt.subplots(2, 2, figsize=(8, 6))
 axes[0,0].scatter(avgDF_2010_sorted.home, avgDF_2010_sorted.totalRuns)
 axes[0,0].set_title("Approach 1: Scatter Plot")
 axes[0,0].set_xlabel("Stadium")
+axes[0,0].tick_params(axis='x', labelsize=6)
 axes[0,0].set_ylabel("Average Runs")
+axes[0,0].tick_params(axis='y', labelsize=6)
 
 # Approach 2: Horizontal bar chart (better for categorical data)
 axes[0,1].barh(avgDF_2010_sorted.home, avgDF_2010_sorted.totalRuns)
 axes[0,1].set_title("Approach 2: Horizontal Bar Chart")
 axes[0,1].set_xlabel("Average Runs")
 axes[0,1].set_ylabel("Stadium")
+axes[0,1].tick_params(axis='y', labelsize=6)
+axes[0,1].tick_params(axis='x', labelsize=6)
 
 # Approach 3: Vertical bar chart
 axes[1,0].bar(avgDF_2010_sorted.home, avgDF_2010_sorted.totalRuns)
 axes[1,0].set_title("Approach 3: Vertical Bar Chart")
 axes[1,0].set_xlabel("Stadium")
 axes[1,0].set_ylabel("Average Runs")
+axes[1,0].tick_params(axis='y', labelsize=6)
+axes[1,0].tick_params(axis='x', labelsize=6)
 axes[1,0].tick_params(axis='x', rotation=45)
 
 # Approach 4: Highlight Colorado
@@ -200,7 +218,8 @@ axes[1,1].barh(avgDF_2010_sorted.home, avgDF_2010_sorted.totalRuns, color=colora
 axes[1,1].set_title("Approach 4: Highlight Colorado")
 axes[1,1].set_xlabel("Average Runs")
 axes[1,1].set_ylabel("Stadium")
-
+axes[1,1].tick_params(axis='y', labelsize=6)
+axes[1,1].tick_params(axis='x', labelsize=6)
 plt.tight_layout()
 plt.show()
 ```
@@ -210,12 +229,14 @@ plt.show()
 
 **Question 1: Geometry Choices**
 - Why is a horizontal bar chart better than a scatter plot for this data?
+The horizontal bar chart (Approach 2) transforms the categorical stadium data into a format that's both mathematically appropriate and visually effective for answering the business question about which stadiums are most run-friendly.
 - When would you choose a vertical bar chart over horizontal?
-
+The vertical bar chart (Approach 3) is better when the categorical data is very long, such as a list of stadiums.
 **Question 2: Aesthetic Mappings**
 - What does the color highlighting accomplish in Approach 4?
+The color highlighting (Approach 4) helps the audience quickly identify the Colorado Rockies' stadium as the most run-friendly due to altitude effects.
 - How does position (x/y) compare to color for encoding data?
-
+The position (x/y) is better for encoding data when the data is ordinal, such as a list of stadiums.
 :::
 
 ## Stage 4: Formatting for Your Audience
@@ -285,8 +306,12 @@ print(f"Colorado is {((colorado_runs / avgDF_2010_sorted.totalRuns.mean()) - 1) 
 
 **Question 1: Professional Formatting**
 - What elements make this visualization suitable for a business presentation?
+The visualization is suitable for a business presentation because it is professional, informative, and easy to understand.
 - Is the annotation on the visualization helpful?  Can you fix its placement?
-
+The annotation on the visualization is helpful because it shows the average runs per game for Colorado and the league average.
+- Can you fix its placement?
+Yes, the annotation can be fixed by moving it to the left of the bar.
+   
 :::
 
 
@@ -301,7 +326,7 @@ Let's create a comprehensive comparison between 2010 and 2021:
 #| echo: true
 
 # Advanced Object-Oriented Techniques
-# Create a comprehensive comparison visualization
+# Create a comprehensive side-by-side comparison visualization
 
 # Prepare data for comparison
 comparison_data = pd.merge(
@@ -310,7 +335,89 @@ comparison_data = pd.merge(
     on='home', how='inner'
 )
 
-## TODO: Create the visualization
+# Sort data consistently for both years (by 2010 values for fair comparison)
+comparison_data_sorted = comparison_data.sort_values('runs_2010', ascending=True)
+
+# Set style for professional appearance
+plt.style.use("seaborn-v0_8-whitegrid")
+
+# Create side-by-side comparison visualization
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(7, 5), sharey=True)
+
+# Create color arrays for highlighting Colorado
+colorado_colors_2010 = ["darkorchid" if stadium == "COL" else "lightgrey" 
+                       for stadium in comparison_data_sorted.home]
+colorado_colors_2021 = ["darkorchid" if stadium == "COL" else "lightgrey" 
+                       for stadium in comparison_data_sorted.home]
+
+# 2010 Bar Chart
+bars_2010 = ax1.barh(comparison_data_sorted.home, comparison_data_sorted.runs_2010, 
+                     color=colorado_colors_2010)
+ax1.set_title("2010 Aver Runs Per Game by Stadium", 
+              fontsize=16, fontweight='bold', pad=20)
+ax1.set_xlabel("Average Runs Per Game", fontsize=12)
+ax1.set_ylabel("Stadium (Home Team)", fontsize=12)
+ax1.grid(True, alpha=0.3)
+
+ax1.tick_params(axis='y', labelsize=8)
+ax1.tick_params(axis='x', labelsize=8)
+# 2021 Bar Chart
+bars_2021 = ax2.barh(comparison_data_sorted.home, comparison_data_sorted.runs_2021, 
+                     color=colorado_colors_2021)
+ax2.set_title("2021 Aver Runs Per Game by Stadium", 
+              fontsize=16, fontweight='bold', pad=20)
+ax2.set_xlabel("Average Runs Per Game", fontsize=12)
+ax2.grid(True, alpha=0.3)
+
+# Add legend
+colorado_bar = plt.Rectangle((0,0),1,1, color="darkorchid", label="Colorado Rockies")
+other_bar = plt.Rectangle((0,0),1,1, color="lightgrey", label="Other Stadiums")
+ax1.legend(handles=[colorado_bar, other_bar], loc='lower right', frameon=True)
+
+# Add annotations for Colorado in both charts
+colorado_data_2010 = comparison_data_sorted[comparison_data_sorted.home == "COL"]
+colorado_data_2021 = comparison_data_sorted[comparison_data_sorted.home == "COL"]
+
+if not colorado_data_2010.empty:
+    colorado_index = colorado_data_2010.index[0]
+    colorado_runs_2010 = colorado_data_2010['runs_2010'].iloc[0]
+    ax1.annotate(f"COL: {colorado_runs_2010:.2f}", 
+                xy=(colorado_runs_2010, colorado_index), 
+                xytext=(colorado_runs_2010 + 0.3, colorado_index),
+                arrowprops=dict(arrowstyle='->', color='darkorchid', lw=2),
+                fontsize=10, fontweight='bold', color='darkorchid')
+
+if not colorado_data_2021.empty:
+    colorado_runs_2021 = colorado_data_2021['runs_2021'].iloc[0]
+    ax2.annotate(f"COL: {colorado_runs_2021:.2f}", 
+                xy=(colorado_runs_2021, colorado_index), 
+                xytext=(colorado_runs_2021 + 0.3, colorado_index),
+                arrowprops=dict(arrowstyle='->', color='darkorchid', lw=2),
+                fontsize=10, fontweight='bold', color='darkorchid')
+
+# Set consistent x-axis limits for fair comparison
+max_runs = max(comparison_data_sorted.runs_2010.max(), comparison_data_sorted.runs_2021.max())
+ax1.set_xlim(0, max_runs * 1.1)
+ax2.set_xlim(0, max_runs * 1.1)
+
+# Add overall title
+fig.suptitle("Baseball Stadium Run-Friendliness:2010 vs 2021 Comparison", 
+             fontsize=20, fontweight='bold', y=0.95)
+
+plt.tight_layout()
+plt.show()
+
+# Print comparison statistics
+print(f"\nComparison Statistics:")
+print(f"2010 - Colorado (COL) average runs per game: {colorado_runs_2010:.2f}")
+print(f"2010 - League average runs per game: {comparison_data_sorted.runs_2010.mean():.2f}")
+print(f"2021 - Colorado (COL) average runs per game: {colorado_runs_2021:.2f}")
+print(f"2021 - League average runs per game: {comparison_data_sorted.runs_2021.mean():.2f}")
+
+# Calculate change
+runs_change = colorado_runs_2021 - colorado_runs_2010
+print(f"\nColorado's change from 2010 to 2021: {runs_change:+.2f} runs per game")
+print(f"Percentage change: {(runs_change/colorado_runs_2010)*100:+.1f}%")
 
 ```
 
@@ -323,6 +430,17 @@ comparison_data = pd.merge(
 **Question 2: Explanation of the Visualization**
 - Ask AI To Add A Paragraph Here To Explain The Visualization
 - Does AI come to the right conclusion?  If not, why not?
+Key Insights This Visualization Reveals
+Colorado's Position: Shows where Colorado ranks among all stadiums in both years
+Change Over Time: Reveals whether Colorado's altitude advantage has increased, decreased, or remained stable
+League Context: Provides comparison to other stadiums for perspective
+Humidor Effect: May show if the humidor (introduced in 2002) has moderated altitude effects
+Visual Design Principles Applied
+Consistent scaling: Both charts use the same x-axis limits for fair comparison
+Color consistency: Same color scheme across both charts
+Clear hierarchy: Colorado stands out while other stadiums provide context
+Professional appearance: Suitable for business presentation or publication
+This visualization effectively answers the research question about whether Coors Field's altitude advantage has changed over time, providing both visual and quantitative evidence for the analysis.
 :::
 
 ## Student Analysis Section: Mastering Object-Oriented Matplotlib {#student-analysis-section}
